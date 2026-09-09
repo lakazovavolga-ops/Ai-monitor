@@ -1,5 +1,6 @@
 import os
 import json
+import time
 import requests
 import feedparser
 from google import genai
@@ -30,14 +31,26 @@ prompt = f"""Ты — аналитический агент по IT.
 Новости для анализа:
 {raw_news}"""
 
-response = client.models.generate_content(
-    model="gemini-3.6-flash",
-    contents=prompt
-)
+# 3. Запрос с защитой от перегрузки (3 попытки с паузой)
+response = None
+for attempt in range(3):
+    try:
+        response = client.models.generate_content(
+            model="gemini-3.6-flash",
+            contents=prompt
+        )
+        if response:
+            break
+    except Exception as e:
+        print(f"Попытка {attempt + 1} не удалась (сервер занят): {e}")
+        time.sleep(8)
+
+if not response:
+    raise RuntimeError("Серверы Google временно перегружены, скрипт сработает в следующий запуск.")
 
 clean_json = response.text.replace("```json", "").replace("```", "").strip()
 
-# 3. Отправка отфильтрованных данных в Telegram
+# 4. Отправка в Telegram
 try:
     items = json.loads(clean_json)
     if items:
@@ -55,4 +68,4 @@ try:
             json={"chat_id": CHAT_ID, "text": "✅ Тест пройден. Критических событий в IT за последние часы не зафиксировано."}
         )
 except Exception as err:
-    print(f"Ошибка обработки: {err}")
+    print(f"Ошибка парсинга или отправки: {err}")
