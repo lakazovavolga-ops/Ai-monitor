@@ -48,7 +48,7 @@ def generate_analysis(raw_text):
 Новости для анализа:
 {raw_text}
 """
-    model = genai.GenerativeModel("gemini-2.5-flash")
+    model = genai.GenerativeModel("gemini-1.5-flash")
     response = model.generate_content(prompt)
     text = response.text.strip()
     if text.startswith("```"):
