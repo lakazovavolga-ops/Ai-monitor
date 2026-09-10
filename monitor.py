@@ -20,16 +20,23 @@ RSS_FEEDS = {
     "Азия": "https://asia.nikkei.com/rss/feed/nar"
 }
 
+HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+}
+
 def collect_news():
     items = []
     for category, url in RSS_FEEDS.items():
         try:
-            feed = feedparser.parse(url)
+            print(f"Загрузка RSS: {category}...", flush=True)
+            # Жесткий таймаут 6 секунд, чтобы не зависать
+            resp = requests.get(url, headers=HEADERS, timeout=6)
+            feed = feedparser.parse(resp.content)
             for entry in feed.entries[:2]:
                 summary = entry.get('summary', '')[:250]
                 items.append(f"[{category}] {entry.title}: {summary}")
         except Exception as e:
-            print(f"Ошибка загрузки {category}: {e}")
+            print(f"Пропуск {category} (сервер не ответил вовремя): {e}", flush=True)
     return "\n".join(items)
 
 def generate_analysis(raw_text):
@@ -46,7 +53,6 @@ def generate_analysis(raw_text):
 Новости:
 {raw_text}
 """
-    # Включаем принудительный строгий режим JSON на стороне API
     generation_config = genai.GenerationConfig(
         response_mime_type="application/json"
     )
@@ -56,17 +62,18 @@ def generate_analysis(raw_text):
 
     for model_name in models_to_try:
         try:
-            print(f"Подключение к модели: {model_name}")
+            print(f"Запрос к модели: {model_name}...", flush=True)
             model = genai.GenerativeModel(model_name, generation_config=generation_config)
             res = model.generate_content(prompt)
             if res and res.text:
                 response = res
+                print(f"Ответ получен от: {model_name}", flush=True)
                 break
         except Exception as err:
-            print(f"Модель {model_name} вернула ошибку: {err}")
+            print(f"Ошибка модели {model_name}: {err}", flush=True)
 
     if not response:
-        raise RuntimeError("Не удалось получить валидный ответ от моделей Gemini.")
+        raise RuntimeError("Не удалось получить ответ от моделей Gemini.")
 
     text = response.text.strip()
     if text.startswith("```"):
@@ -103,17 +110,20 @@ def send_telegram_alert(cards):
             ]
         }
     }
-    res = requests.post(url, json=payload)
-    print(f"Telegram API: статус {res.status_code}")
+    res = requests.post(url, json=payload, timeout=10)
+    print(f"Telegram статус: {res.status_code}", flush=True)
     res.raise_for_status()
 
 if __name__ == "__main__":
+    print("Начало работы монитора...", flush=True)
     raw_data = collect_news()
+    print("Новости собраны, запуск анализа Gemini...", flush=True)
     analysis_json = generate_analysis(raw_data)
     
     cards_data = json.loads(analysis_json)
     with open("data.json", "w", encoding="utf-8") as f:
         json.dump(cards_data, f, ensure_ascii=False, indent=2)
     
+    print("Отправка в чат...", flush=True)
     send_telegram_alert(cards_data)
-    print("Готово: данные записаны, сводка отправлена.")
+    print("Готово: данные сохранены, сводка в чате!", flush=True)
