@@ -1,131 +1,97 @@
 import os
-import re
-import html
-import time
-import requests
+import json
 import feedparser
-from google import genai
+import google.generativeai as genai
+import requests
 
-GEMINI_KEY = os.environ.get("GEMINI_API_KEY")
-BOT_TOKEN = os.environ.get("BOT_TOKEN")
-CHAT_ID = os.environ.get("CHAT_ID")
+TELEGRAM_BOT_TOKEN = os.environ["BOT_TOKEN"]
+TELEGRAM_CHAT_ID = os.environ["CHAT_ID"]
+GEMINI_API_KEY = os.environ["GEMINI_API_KEY"]
+WEB_APP_URL = "https://lakazovavolga-ops.github.io/Ai-monitor/"
 
-def send_telegram(text):
-    """Отправляет текст надежными порциями без капризного парсера разметки."""
-    for chunk in [text[i:i+3900] for i in range(0, len(text), 3900)]:
-        r = requests.post(
-            f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage",
-            json={
-                "chat_id": CHAT_ID,
-                "text": chunk,
-                "disable_web_page_preview": True
-            }
-        )
-        print(f"Ответ Telegram API: {r.status_code}, {r.text}")
+genai.configure(api_key=GEMINI_API_KEY)
 
-def clean_html(raw_html):
-    if not raw_html:
-        return ""
-    clean = re.sub(r"<[^>]+>", " ", raw_html)
-    return " ".join(html.unescape(clean).split())
+RSS_FEEDS = {
+    "Геоэкономика": "https://www.cnbc.com/id/100003114/device/rss/rss.html",
+    "Рынки": "https://www.cnbc.com/id/20910258/device/rss/rss.html",
+    "ВПК": "https://www.defensenews.com/arc/outboundfeeds/rss/category/global/?outputType=xml",
+    "Технологии": "https://techcrunch.com/category/artificial-intelligence/feed/",
+    "Азия": "https://asia.nikkei.com/rss/feed/nar"
+}
 
-def fetch_rich_rss(url, limit=5):
-    try:
-        feed = feedparser.parse(url)
-        articles = []
-        for entry in feed.entries[:limit]:
-            title = entry.get("title", "").strip()
-            desc = entry.get("summary") or entry.get("description") or ""
-            clean_desc = clean_html(desc)[:450]
-            link = entry.get("link", "").strip()
-            articles.append(f"Заголовок: {title}\nСуть: {clean_desc}\nURL: {link}")
-        return "\n---\n".join(articles)
-    except Exception as e:
-        print(f"Ошибка сбора {url}: {e}")
-        return ""
+def collect_news():
+    items = []
+    for category, url in RSS_FEEDS.items():
+        try:
+            feed = feedparser.parse(url)
+            for entry in feed.entries[:2]:
+                items.append(f"[{category}] {entry.title}: {entry.get('summary', '')[:250]}")
+        except Exception as e:
+            print(f"Ошибка загрузки {category}: {e}")
+    return "\n".join(items)
 
-print("Сбор данных по международным потокам...")
-data_macro = fetch_rich_rss("https://search.cnbc.com/rs/search/view.html?partnerId=2000&keywords=tariffs%20economy%20fed&sort=date", limit=5)
-data_markets = fetch_rich_rss("https://finance.yahoo.com/news/rssindex", limit=5)
-data_deftech = fetch_rich_rss("https://www.defensenews.com/arc/outboundfeeds/rss/?outputType=xml", limit=5)
-data_musk = fetch_rich_rss("https://techcrunch.com/tag/elon-musk/feed/", limit=4)
-data_asia = fetch_rich_rss("https://asia.nikkei.com/rss/feed/nar", limit=5)
-data_migration = fetch_rich_rss("https://ec.europa.eu/commission/presscorner/api/rss?language=en", limit=4)
+def generate_analysis(raw_text):
+    prompt = f"""
+Ты — ведущий геоэкономический аналитик. На основе входящих новостей сформируй анализ строго в формате валидного JSON-массива из объектов.
+Не добавляй никакого вступительного или пояснительного текста, разметки markdown (```json ... ```), выведи только чистый массив JSON.
 
-prompt = f"""Ты — старший геоэкономический аналитик и фактчекер. Твоя методика основана на кейс-методе: каждое явление объясняется через механизм действия, документальный исторический прецедент и осязаемое влияние на людей и капитал.
+Формат каждого объекта:
+{{
+  "category": "Название категории (Геоэкономика, Рынки, ВПК, Технологии или Азия)",
+  "icon": "соответствующий эмодзи",
+  "summary": "Главный вывод и тезис события в 1-2 предложениях (для быстрого чтения за 15 секунд)",
+  "mechanism": "Экономический и производственный механизм (цепочки поставок, капитал, сырье)",
+  "precedent": "Исторический прецедент (аналогия из истории XX-XXI века и чем все закончилось)",
+  "impact": "Влияние на уровень жизни обычного человека"
+}}
 
-СТРОГИЕ ПРАВИЛА:
-1. Только верифицированные факты, цифры, даты и имена из предоставленных данных. Запрещено выдумывать новости.
-2. В блоке динамики войны КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО называть вымышленные даты завершения конфликта. Оценивай исключительно материально-технические маркеры: темпы работы ВПК, снарядное производство, статус помощи и позиции сторон.
-3. Исторические прецеденты должны быть реальными событиями XX–XXI веков (с точными годами).
-4. Связывай шаги Восточной Азии, Илона Маска и рынков в единую причинно-следственную цепочку.
-
-ВХОДЯЩИЕ ДАННЫЕ:
-- Макроэкономика и мировые решения:
-{data_macro}
-- Фондовый рынок:
-{data_markets}
-- Оборонные технологии и ВПК:
-{data_deftech}
-- Илон Маск и сделки:
-{data_musk}
-- Восточная Азия (Китай, Япония, Южная Корея):
-{data_asia}
-- Миграция и регуляции ЕС:
-{data_migration}
-
-СФОРМИРУЙ ОТЧЕТ СТРОГО ПО ШАБЛОНУ:
-
-🌐 1. ГЕОЭКОНОМИКА И ВНЕШНЯЯ ПОЛИТИКА
-• Событие: [Кто, что утвердил/ввел, ключевые цифры]
-• Экономический механизм: [Влияние на пошлины, балансы или инфляцию]
-• Исторический прецедент: [Аналогичный кризис/решение XX–XXI века с датами]
-• Последствия для обычного человека: [Цены, сбережения, рабочие места]
-
-📈 2. ФОНДОВЫЙ РЫНОК И КАПИТАЛ
-• Ключевой драйвер: [Решения регуляторов или движение индексов]
-• Акции в фокусе (Тикеры): [Причины динамики, отчеты, апгрейды]
-• Исторический прецедент: [Аналог из истории биржевых циклов]
-
-🎖️ 3. ВОЕННЫЕ ТЕХНОЛОГИИ И РЕСУРСНЫЕ МАРКЕРЫ ВОЙНЫ В УКРАИНЕ
-• Технологии и ВПК: [Новые разработки, масштабирование дронов/РЭБ]
-• Ресурсные индикаторы завершения: [Оценка арсеналов, финансирования и стойкости]
-• Историческая параллель: [Пример позиционного противостояния прошлого]
-
-⚡ 4. ИЛОН МАСК: АКТИВЫ, СДЕЛКИ И СТРАТЕГИЯ
-• Фактические действия: [Движения капитала, раунды финансирования, контракты]
-• Аналитика ИИ: [Скрытая логика: синергия данных, регуляторные риски]
-• Исторический прототип: [Сравнение с промышленниками прошлого]
-
-🌏 5. ВОСТОЧНАЯ АЗИЯ: КИТАЙ, ЯПОНИЯ, ЮЖНАЯ КОРЕЯ
-• Ключевой факт: [Решения в регионе, сырье, чипы, валюты]
-• Связка с западным рынком и Маском: [Влияние на американский техсектор и автопром]
-• Исторический прецедент: [Аналог в истории региона]
-
-⚖️ 6. МИГРАЦИОННОЕ ПРАВО И ЛЕГАЛИЗАЦИЯ В ЕС
-• Фактические изменения: [Решения Еврокомиссии, статусы защиты, визы]
-• Практический вывод: [Что это меняет для иностранцев и рынка труда Европы]
+Новости для анализа:
+{raw_text}
 """
+    model = genai.GenerativeModel("gemini-2.5-flash")
+    response = model.generate_content(prompt)
+    text = response.text.strip()
+    if text.startswith("```"):
+        lines = text.split("\n")
+        text = "\n".join(lines[1:-1] if lines[-1].startswith("```") else lines[1:]).strip()
+    return text
 
-client = genai.Client(api_key=GEMINI_KEY)
-response = None
+def send_telegram_alert(cards):
+    text_lines = ["🌐 <b>Глобальный Монитор: Свежая сводка</b>\n"]
+    for card in cards[:4]:
+        text_lines.append(f"{card.get('icon', '🔹')} <b>{card.get('category')}</b>")
+        text_lines.append(f"{card.get('summary')}\n")
 
-for attempt in range(1, 5):
+    text_lines.append("<i>Полный анализ, исторические прецеденты и цепочки поставок — в приложении ниже:</i>")
+    message_text = "\n".join(text_lines)
+
+    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+    payload = {
+        "chat_id": TELEGRAM_CHAT_ID,
+        "text": message_text,
+        "parse_mode": "HTML",
+        "reply_markup": {
+            "inline_keyboard": [
+                [
+                    {
+                        "text": "📊 Открыть интерактивный монитор",
+                        "web_app": {"url": WEB_APP_URL}
+                    }
+                ]
+            ]
+        }
+    }
+    requests.post(url, json=payload)
+
+if __name__ == "__main__":
+    raw_data = collect_news()
+    analysis_json = generate_analysis(raw_data)
+    
     try:
-        print(f"Попытка {attempt}: обращение к Gemini...")
-        response = client.models.generate_content(
-            model="gemini-3.6-flash",
-            contents=prompt,
-            config={"temperature": 0.1}
-        )
-        if response and response.text:
-            break
+        cards_data = json.loads(analysis_json)
+        with open("data.json", "w", encoding="utf-8") as f:
+            json.dump(cards_data, f, ensure_ascii=False, indent=2)
+        send_telegram_alert(cards_data)
+        print("Сводка отправлена, data.json успешно записан.")
     except Exception as e:
-        print(f"Сервер занят ({e}), ожидание...")
-        time.sleep(15)
-
-if response and response.text:
-    send_telegram(response.text)
-    print("Готово: отчет передан в Telegram.")
-else:
-    send_telegram("⚠️ Серверы генерации временно перегружены. Следующий запуск пройдет по расписанию.")
+        print(f"Ошибка обработки JSON: {e}")
