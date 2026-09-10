@@ -55,20 +55,24 @@ def collect_fashion_news():
 
 def analyze_fashion(news_items):
     prompt = f"""
-Ты — профессиональный куратор высокой моды и эксперт по крою.
-Ниже список свежих модных релизов и показов с фото:
+Ты — куратор высокой моды и колорист.
+Ниже список свежих модных показов и лукбуков:
 {json.dumps(news_items, ensure_ascii=False)}
 
-Выбери ОДИН самый эстетичный, знаковый образ или новинку (приоритет люксовым брендам уровня Hermès, Burberry, Chanel, Prada, The Row, Loewe, Saint Laurent или ключевым подиумным трендам сезона).
-Сформируй анализ строго в формате JSON-объекта:
+Выбери ОДИН знаковый образ (приоритет брендам вроде Hermès, Burberry, Prada, Loewe, The Row, Saint Laurent).
+Сформируй анализ строго в формате JSON:
 {{
-  "brand": "Бренд или модный дом",
+  "brand": "Бренд",
   "topic": "Название образа или коллекции в 3-5 словах",
-  "image_url": "Точная ссылка на изображение из предоставленного объекта (не меняй её)",
-  "colors": "Модная палитра (назови 2-3 сложных трендовых оттенка)",
-  "cut_silhouette": "Фасон и архитектура кроя (линия плеча, талия, посадка, пропорции)",
-  "materials": "Материалы и фактуры (шерсть, плотный габардин, шелк, кожа)",
-  "practical_tip": "Как применить этот образ в повседневном гардеробе обычной жизни без люксовых затрат"
+  "image_url": "Точная ссылка на фото из объекта",
+  "palette": [
+    {{"name": "Сложный оттенок 1 (например: Горький шоколад)", "hex": "#3E2723"}},
+    {{"name": "Сложный оттенок 2 (например: Сливочный butter yellow)", "hex": "#F3E5AB"}},
+    {{"name": "Сложный оттенок 3 (например: Мокрый асфальт)", "hex": "#424242"}}
+  ],
+  "cut_silhouette": "Фасон и крой (плечи, талия, пропорции)",
+  "materials": "Материалы и фактуры ткани",
+  "practical_tip": "Как адаптировать этот люксовый образ для обычного гардероба"
 }}
 """
     generation_config = genai.GenerationConfig(response_mime_type="application/json")
@@ -85,19 +89,24 @@ def analyze_fashion(news_items):
 def send_fashion_telegram(data):
     brand = html.escape(str(data.get("brand", "Модный дайджест")))
     topic = html.escape(str(data.get("topic", "")))
-    colors = html.escape(str(data.get("colors", "")))
     cut = html.escape(str(data.get("cut_silhouette", "")))
     materials = html.escape(str(data.get("materials", "")))
     tip = html.escape(str(data.get("practical_tip", "")))
     image_url = data.get("image_url", "")
 
+    palette_items = data.get("palette", [])
+    if palette_items and isinstance(palette_items, list):
+        palette_str = ", ".join([f"{p.get('name', '')} ({p.get('hex', '')})" for p in palette_items])
+    else:
+        palette_str = html.escape(str(data.get("colors", "")))
+
     caption_lines = [
         f"✨ <b>{brand}</b> | <i>{topic}</i>\n",
-        f"🎨 <b>Палитра:</b> {colors}",
+        f"🎨 <b>Палитра:</b> {palette_str}",
         f"✂️ <b>Крой и силуэт:</b> {cut}",
         f"🧵 <b>Материалы:</b> {materials}\n",
         f"💡 <b>В гардероб:</b> {tip}\n",
-        "<i>Подробный разбор и галерея образов — в мониторе:</i>"
+        "<i>Интерактивная палитра и разбор — в мониторе:</i>"
     ]
     caption = "\n".join(caption_lines)
 
@@ -120,7 +129,7 @@ def send_fashion_telegram(data):
         }
         res = requests.post(send_photo_url, json=payload, timeout=20)
         if res.status_code == 200:
-            print("Фото-пост моды успешно отправлен в Telegram.", flush=True)
+            print("Фото моды отправлено.", flush=True)
             return
 
     send_msg_url = tg_api_base + "/sendMessage"
@@ -131,7 +140,7 @@ def send_fashion_telegram(data):
         "reply_markup": reply_markup
     }
     requests.post(send_msg_url, json=payload, timeout=15)
-    print("Текстовый пост моды отправлен.", flush=True)
+    print("Текст моды отправлен.", flush=True)
 
 def save_fashion_history(item):
     history = []
@@ -140,7 +149,7 @@ def save_fashion_history(item):
             with open("fashion_data.json", "r", encoding="utf-8") as f:
                 history = json.load(f)
         except Exception as e:
-            print(f"Ошибка чтения архива моды: {e}")
+            print(f"Ошибка архива: {e}")
 
     now_str = datetime.now(timezone(timedelta(hours=3))).strftime("%d.%m.%Y")
     item["date"] = now_str
@@ -157,4 +166,4 @@ if __name__ == "__main__":
         analysis = analyze_fashion(news)
         save_fashion_history(analysis)
         send_fashion_telegram(analysis)
-    print("Модный блок завершил работу!", flush=True)
+    print("Готово!", flush=True)
