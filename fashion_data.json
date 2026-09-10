@@ -1,6 +1,29 @@
 [
   {
     "brand": "HOMME PLISSÉ ISSEY MIYAKE",
+    "topic": "Плиссировка по мотивам Анри Матисса",
+    "image_url": "https://image-cdn.hypb.st/https%3A%2F%2Fhypebeast.com%2Fimage%2F2026%2F09%2F10%2Fhomme-plisse-issey-miyake-second-open-studio-edition-tate-modern-inspired-by-henri-matisse-the-snail-release-info-1.jpg?w=800&amp;cbr=1&amp;q=90&amp;fit=max",
+    "palette": [
+      {
+        "name": "Глубокий ультрамарин",
+        "hex": "#1A2B4C"
+      },
+      {
+        "name": "Сочный терракот",
+        "hex": "#C85A32"
+      },
+      {
+        "name": "Солнечный охристый",
+        "hex": "#E5A93C"
+      }
+    ],
+    "cut_silhouette": "Свободный архитектурный оверсайз с мягкой линией плеч, объемной геометрией и динамичной скульптурной драпировкой.",
+    "materials": "Технологичный плиссированный полиэстер с уникальной запатентованной фактурой и арт-принтом.",
+    "practical_tip": "Сочетайте яркую плиссированную вещь акцентного оттенка с лаконичным базовым гардеробом нейтральных тонов — например, со свободными брюками или строгим блейзером.",
+    "date": "10.09.2026"
+  },
+  {
+    "brand": "HOMME PLISSÉ ISSEY MIYAKE",
     "topic": "Плиссированная интерпретация Матисса",
     "image_url": "https://image-cdn.hypb.st/https%3A%2F%2Fhypebeast.com%2Fimage%2F2026%2F09%2F10%2Fhomme-plisse-issey-miyake-second-open-studio-edition-tate-modern-inspired-by-henri-matisse-the-snail-release-info-1.jpg?w=800&amp;cbr=1&amp;q=90&amp;fit=max",
     "palette": [
