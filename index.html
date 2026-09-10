@@ -29,7 +29,7 @@
       padding-bottom: 12px;
     }
     h1 {
-      font-size: 1.25rem;
+      font-size: 1.2rem;
       margin: 0 0 6px 0;
       display: flex;
       align-items: center;
@@ -105,6 +105,12 @@
     .deep-dive strong {
       color: var(--text-main);
     }
+    #loading {
+      text-align: center;
+      color: var(--text-muted);
+      padding: 30px;
+      font-size: 0.9rem;
+    }
   </style>
 </head>
 <body>
@@ -114,59 +120,48 @@
     <p class="subtitle">Сквозной геоэкономический монитор и исторические маркеры</p>
   </header>
 
-  <!-- Блок 1 -->
-  <div class="card">
-    <div class="card-title">🌐 Геоэкономика и внешняя политика</div>
-    <div class="summary" id="geo-summary">
-      ФРС удерживает жесткую позицию по ставкам на фоне новых торговых барьеров, ограничивая доступ развивающихся рынков к дешевой ликвидности.
-    </div>
-    <details>
-      <summary></summary>
-      <div class="deep-dive" id="geo-details">
-        <p><strong>Экономический механизм:</strong> Удорожание заимствований ведет к оттоку капитала в казначейские облигации США и давит на курсы нацвалют.</p>
-        <p><strong>Исторический прецедент:</strong> Политика Пола Волкера 1979–1981 гг., приведшая к долговому кризису в Латинской Америке.</p>
-        <p><strong>Влияние на человека:</strong> Рост ставок по кредитам и удорожание импортных товаров долгосрочного пользования.</p>
-      </div>
-    </details>
-  </div>
-
-  <!-- Блок 2 -->
-  <div class="card">
-    <div class="card-title">📈 Фондовый рынок и капитал</div>
-    <div class="summary" id="market-summary">
-      Индексы консолидируются вокруг технологического сектора; концентрация ликвидности в бигтехах приближается к экстремальным значениям.
-    </div>
-    <details>
-      <summary></summary>
-      <div class="deep-dive" id="market-details">
-        <p><strong>Драйвер:</strong> Капитальные затраты гиперскейлеров на серверную инфраструктуру и HBM-память.</p>
-        <p><strong>Исторический прецедент:</strong> Рынoк Nifty Fifty конца 1960-х — концентрация в узкой группе «акций первого эшелона» перед переоценкой.</p>
-      </div>
-    </details>
-  </div>
-
-  <!-- Блок 3 -->
-  <div class="card">
-    <div class="card-title">🎖️ Ресурсные маркеры ВПК</div>
-    <div class="summary" id="defense-summary">
-      Запад наращивает контракты на пороховые компоненты и ПВО, однако темпы поставок продолжают упираться в дефицит нитроцеллюлозы.
-    </div>
-    <details>
-      <summary></summary>
-      <div class="deep-dive" id="defense-details">
-        <p><strong>Индикаторы стойкости:</strong> Переход производственных мощностей Rheinmetall и чешских хабов на трехсменный цикл без гарантий долгосрочного госзаказа.</p>
-        <p><strong>Историческая параллель:</strong> Снарядный кризис осени 1914 года и мобилизация частных мануфактур Британии.</p>
-      </div>
-    </details>
+  <div id="cards-container">
+    <div id="loading">Загрузка свежих данных мониторинга...</div>
   </div>
 
   <script>
-    // Инициализация интерфейса Telegram Web App
     const tg = window.Telegram.WebApp;
     if (tg) {
       tg.ready();
       tg.expand();
     }
+
+    // Загружаем сгенерированный AI файл data.json
+    fetch('data.json?v=' + new Date().getTime())
+      .then(response => {
+        if (!response.ok) throw new Error('Данные еще формируются');
+        return response.json();
+      })
+      .then(data => {
+        const container = document.getElementById('cards-container');
+        container.innerHTML = '';
+
+        data.forEach(item => {
+          const card = document.createElement('div');
+          card.className = 'card';
+          card.innerHTML = `
+            <div class="card-title">${item.icon || '🔹'} ${item.category}</div>
+            <div class="summary">${item.summary}</div>
+            <details>
+              <summary></summary>
+              <div class="deep-dive">
+                ${item.mechanism ? `<p><strong>Механизм:</strong> ${item.mechanism}</p>` : ''}
+                ${item.precedent ? `<p><strong>Прецедент:</strong> ${item.precedent}</p>` : ''}
+                ${item.impact ? `<p><strong>Влияние на жизнь:</strong> ${item.impact}</p>` : ''}
+              </div>
+            </details>
+          `;
+          container.appendChild(card);
+        });
+      })
+      .catch(err => {
+        document.getElementById('loading').innerText = 'Загружаются актуальные данные... Обновите страницу через минуту.';
+      });
   </script>
 </body>
 </html>
