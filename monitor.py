@@ -31,21 +31,6 @@ def collect_news():
             print(f"Ошибка загрузки {category}: {e}")
     return "\n".join(items)
 
-def get_working_model():
-    try:
-        models = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
-        print(f"Доступные модели: {models}")
-        for target in ["2.0-flash", "1.5-flash", "flash", "gemini-pro"]:
-            for m in models:
-                if target in m:
-                    print(f"Выбрана модель: {m}")
-                    return genai.GenerativeModel(m)
-        if models:
-            return genai.GenerativeModel(models[0])
-    except Exception as e:
-        print(f"Ошибка получения моделей: {e}")
-    return genai.GenerativeModel("gemini-1.5-flash")
-
 def generate_analysis(raw_text):
     prompt = f"""
 Ты — ведущий геоэкономический аналитик. На основе входящих новостей сформируй анализ строго в формате валидного JSON-массива из объектов.
@@ -64,13 +49,31 @@ def generate_analysis(raw_text):
 Новости для анализа:
 {raw_text}
 """
-    model = get_working_model()
-    response = model.generate_content(prompt)
+    # Список актуальных моделей Google Gemini
+    models_to_try = ["gemini-3.6-flash", "gemini-flash-latest", "gemini-3.5-flash"]
+    
+    response = None
+    for model_name in models_to_try:
+        try:
+            print(f"Подключение к модели: {model_name}")
+            model = genai.GenerativeModel(model_name)
+            res = model.generate_content(prompt)
+            if res and res.text:
+                response = res
+                print(f"Успешный ответ от модели: {model_name}")
+                break
+        except Exception as err:
+            print(f"Модель {model_name} не ответила: {err}")
+
+    if not response:
+        raise RuntimeError("Не удалось получить ответ ни от одной поддерживаемой модели Gemini.")
+
     text = response.text.strip()
     if text.startswith("```"):
-        lines = text.split("\n")
-        text = "\n".join(lines[1:-1] if lines[-1].startswith("```") else lines[1:]).strip()
-    return text
+        text = text.split("\n", 1)[1]
+        if text.endswith("```"):
+            text = text.rsplit("```", 1)[0]
+    return text.strip()
 
 def send_telegram_alert(cards):
     text_lines = ["🌐 <b>Глобальный Монитор: Свежая сводка</b>\n"]
@@ -84,7 +87,7 @@ def send_telegram_alert(cards):
     text_lines.append("<i>Полный анализ, исторические прецеденты и цепочки поставок — в приложении ниже:</i>")
     message_text = "\n".join(text_lines)
 
-    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+    url = f"[https://api.telegram.org/bot](https://api.telegram.org/bot){TELEGRAM_BOT_TOKEN}/sendMessage"
     payload = {
         "chat_id": TELEGRAM_CHAT_ID,
         "text": message_text,
@@ -111,6 +114,6 @@ if __name__ == "__main__":
         with open("data.json", "w", encoding="utf-8") as f:
             json.dump(cards_data, f, ensure_ascii=False, indent=2)
         send_telegram_alert(cards_data)
-        print("Сводка отправлена, data.json успешно записан.")
+        print("Сводка отправлена, data.json успешно сохранен.")
     except Exception as e:
-        print(f"Ошибка обработки JSON: {e}")
+        print(f"Ошибка сохранения или отправки: {e}")
