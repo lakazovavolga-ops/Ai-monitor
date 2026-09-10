@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Монитор: Геоэкономика & Мода</title>
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script src="[https://telegram.org/js/telegram-web-app.js](https://telegram.org/js/telegram-web-app.js)"></script>
   <style>
     :root {
       --bg-color: var(--tg-theme-bg-color, #0f172a);
@@ -108,6 +108,48 @@
       line-height: 1.5;
       margin-bottom: 8px;
     }
+
+    /* Визуальная палитра (свотчи цветов) */
+    .palette-container {
+      margin: 10px 0 14px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .palette-title {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .swatches {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .swatch-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 4px 10px 4px 5px;
+      font-size: 0.82rem;
+    }
+    .swatch-circle {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      flex-shrink: 0;
+    }
+    .hex-code {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-left: 2px;
+    }
   </style>
 </head>
 <body>
@@ -190,13 +232,31 @@
           const container = document.getElementById('fashion-cards');
           container.innerHTML = '';
           items.forEach(item => {
+            let paletteHtml = '';
+            if (item.palette && Array.isArray(item.palette)) {
+              paletteHtml = `
+                <div class="palette-container">
+                  <div class="palette-title">🎨 Палитра сезона:</div>
+                  <div class="swatches">
+                    ${item.palette.map(p => `
+                      <div class="swatch-chip">
+                        <span class="swatch-circle" style="background-color: ${p.hex || '#666'};"></span>
+                        <span><strong>${p.name || ''}</strong> <span class="hex-code">${p.hex || ''}</span></span>
+                      </div>
+                    `).join('')}
+                  </div>
+                </div>`;
+            } else if (item.colors) {
+              paletteHtml = `<div class="fashion-meta">🎨 <strong>Палитра:</strong> ${item.colors}</div>`;
+            }
+
             const c = document.createElement('div');
             c.className = 'card';
             c.innerHTML = `
               <span class="fashion-tag">${item.brand} • ${item.date || 'Новинка'}</span>
               <div class="card-title">${item.topic}</div>
               ${item.image_url ? `<img src="${item.image_url}" class="fashion-img" onerror="this.style.display='none'">` : ''}
-              <div class="fashion-meta">🎨 <strong>Палитра:</strong> ${item.colors}</div>
+              ${paletteHtml}
               <div class="fashion-meta">✂️ <strong>Крой:</strong> ${item.cut_silhouette}</div>
               <div class="fashion-meta">🧵 <strong>Материалы:</strong> ${item.materials}</div>
               <div class="impact-box" style="border-left-color: #f43f5e; background: rgba(244, 63, 94, 0.1);">
@@ -207,7 +267,7 @@
           });
         })
         .catch(() => {
-          document.getElementById('fashion-cards').innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted);">Первый модный выпуск появится после запуска.</div>';
+          document.getElementById('fashion-cards').innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted);">Первый модный выпуск формируется...</div>';
         });
     }
   </script>
