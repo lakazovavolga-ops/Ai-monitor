@@ -25,10 +25,26 @@ def collect_news():
         try:
             feed = feedparser.parse(url)
             for entry in feed.entries[:2]:
-                items.append(f"[{category}] {entry.title}: {entry.get('summary', '')[:250]}")
+                summary = entry.get('summary', '')[:250]
+                items.append(f"[{category}] {entry.title}: {summary}")
         except Exception as e:
             print(f"Ошибка загрузки {category}: {e}")
     return "\n".join(items)
+
+def get_working_model():
+    try:
+        models = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
+        print(f"Доступные модели: {models}")
+        for target in ["2.0-flash", "1.5-flash", "flash", "gemini-pro"]:
+            for m in models:
+                if target in m:
+                    print(f"Выбрана модель: {m}")
+                    return genai.GenerativeModel(m)
+        if models:
+            return genai.GenerativeModel(models[0])
+    except Exception as e:
+        print(f"Ошибка получения моделей: {e}")
+    return genai.GenerativeModel("gemini-1.5-flash")
 
 def generate_analysis(raw_text):
     prompt = f"""
@@ -48,7 +64,7 @@ def generate_analysis(raw_text):
 Новости для анализа:
 {raw_text}
 """
-    model = genai.GenerativeModel("gemini-1.5-flash")
+    model = get_working_model()
     response = model.generate_content(prompt)
     text = response.text.strip()
     if text.startswith("```"):
@@ -59,8 +75,11 @@ def generate_analysis(raw_text):
 def send_telegram_alert(cards):
     text_lines = ["🌐 <b>Глобальный Монитор: Свежая сводка</b>\n"]
     for card in cards[:4]:
-        text_lines.append(f"{card.get('icon', '🔹')} <b>{card.get('category')}</b>")
-        text_lines.append(f"{card.get('summary')}\n")
+        icon = card.get('icon', '🔹')
+        cat = card.get('category', '')
+        summary = card.get('summary', '')
+        text_lines.append(f"{icon} <b>{cat}</b>")
+        text_lines.append(f"{summary}\n")
 
     text_lines.append("<i>Полный анализ, исторические прецеденты и цепочки поставок — в приложении ниже:</i>")
     message_text = "\n".join(text_lines)
