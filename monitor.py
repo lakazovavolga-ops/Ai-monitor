@@ -1,9 +1,12 @@
 import os
 import json
 import html
+import asyncio
+from datetime import datetime, timezone, timedelta
 import feedparser
 import google.generativeai as genai
 import requests
+import edge_tts
 
 TELEGRAM_BOT_TOKEN = os.environ["BOT_TOKEN"]
 TELEGRAM_CHAT_ID = os.environ["CHAT_ID"]
@@ -41,14 +44,20 @@ def collect_news():
 
 def generate_analysis(raw_text):
     prompt = f"""
-Ты — ведущий геоэкономический аналитик. На основе входящих новостей сформируй анализ строго в формате массива JSON-объектов.
-Каждый объект должен содержать:
-- "category": название категории
-- "icon": эмодзи
-- "summary": тезис события в 1-2 предложениях
-- "mechanism": экономический и сырьевой механизм
-- "precedent": исторический прецедент (XX-XXI век)
-- "impact": влияние на обычного человека
+Ты — ведущий геоэкономический аналитик. На основе входящих новостей сформируй анализ строго в формате JSON-объекта со следующей структурой:
+{{
+  "voice_script": "Связанный текст для диктора на 40-50 секунд спокойным тоном новостного аналитика. Без эмодзи и спецсимволов. Начни с фразы 'Здравствуйте. Краткий геоэкономический брифинг.' и выдели 2-3 ключевых события и главный вывод для жизни.",
+  "cards": [
+    {{
+      "category": "Название категории",
+      "icon": "соответствующий эмодзи",
+      "summary": "Главный тезис события в 1-2 предложениях",
+      "mechanism": "Производственно-сырьевой механизм (цепочки, дефицит, логистика)",
+      "precedent": "Исторический прецедент (XX-XXI век и чем завершился)",
+      "impact": "Прикладной вывод: прямое влияние на домохозяйство, кошелек, цены на технику, автозапчасти, инфляцию или валюту"
+    }}
+  ]
+}}
 
 Новости:
 {raw_text}
@@ -73,7 +82,7 @@ def generate_analysis(raw_text):
             print(f"Ошибка модели {model_name}: {err}", flush=True)
 
     if not response:
-        raise RuntimeError("Не удалось получить ответ от моделей Gemini.")
+        raise RuntimeError("Не удалось получить ответ от Gemini.")
 
     text = response.text.strip()
     if text.startswith("```"):
@@ -82,19 +91,43 @@ def generate_analysis(raw_text):
             text = text.rsplit("```", 1)[0]
     return text.strip()
 
+async def create_voice_file(text, output_file="briefing.mp3"):
+    communicate = edge_tts.Communicate(text, voice="ru-RU-DmitryNeural")
+    await communicate.save(output_file)
+
+def send_telegram_voice(audio_path):
+    url = "".join(["https://", "api.telegram.org", "/bot", TELEGRAM_BOT_TOKEN, "/sendVoice"])
+    try:
+        with open(audio_path, "rb") as audio:
+            files = {"voice": audio}
+            data = {
+                "chat_id": TELEGRAM_CHAT_ID,
+                "caption": "🎙 <b>Голосовой экспресс-брифинг</b>",
+                "parse_mode": "HTML"
+            }
+            res = requests.post(url, data=data, files=files, timeout=40)
+            print(f"Статус отправки Voice: {res.status_code}", flush=True)
+    except Exception as e:
+        print(f"Ошибка отправки голосового сообщения: {e}", flush=True)
+
 def send_telegram_alert(cards):
     text_lines = ["🌐 <b>Глобальный Монитор: Свежая сводка</b>\n"]
     for card in cards[:4]:
         icon = card.get('icon', '🔹')
         cat = html.escape(str(card.get('category', '')))
         summary = html.escape(str(card.get('summary', '')))
+        impact = html.escape(str(card.get('impact', '')))
         text_lines.append(f"{icon} <b>{cat}</b>")
-        text_lines.append(f"{summary}\n")
+        text_lines.append(f"{summary}")
+        if impact:
+            text_lines.append(f"💡 <i>Прикладной вывод: {impact}</i>\n")
+        else:
+            text_lines.append("")
 
-    text_lines.append("<i>Полный анализ, цепочки поставок и исторические прецеденты:</i>")
+    text_lines.append("<i>Полный интерактивный разбор и ретроспектива:</i>")
     message_text = "\n".join(text_lines)
 
-    telegram_api_url = "".join(["https://", "api.telegram.org", "/bot", TELEGRAM_BOT_TOKEN, "/sendMessage"])
+    url = "".join(["https://", "api.telegram.org", "/bot", TELEGRAM_BOT_TOKEN, "/sendMessage"])
     payload = {
         "chat_id": TELEGRAM_CHAT_ID,
         "text": message_text,
@@ -110,20 +143,55 @@ def send_telegram_alert(cards):
             ]
         }
     }
-    res = requests.post(telegram_api_url, json=payload, timeout=10)
-    print(f"Telegram статус: {res.status_code}", flush=True)
+    res = requests.post(url, json=payload, timeout=10)
+    print(f"Telegram сообщение: статус {res.status_code}", flush=True)
     res.raise_for_status()
 
-if __name__ == "__main__":
-    print("Начало работы монитора...", flush=True)
-    raw_data = collect_news()
-    print("Новости собраны, запуск анализа Gemini...", flush=True)
-    analysis_json = generate_analysis(raw_data)
+def save_retrospective(cards_data):
+    history = []
+    if os.path.exists("data.json"):
+        try:
+            with open("data.json", "r", encoding="utf-8") as f:
+                existing = json.load(f)
+                if isinstance(existing, dict) and "history" in existing:
+                    history = existing["history"]
+                elif isinstance(existing, list):
+                    history = [{"timestamp": "Предыдущий архивный выпуск", "cards": existing}]
+        except Exception as e:
+            print(f"Ошибка чтения старого архива: {e}")
+
+    now_str = datetime.now(timezone(timedelta(hours=3))).strftime("%d.%m.%Y %H:%M")
+    new_entry = {
+        "timestamp": now_str,
+        "cards": cards_data
+    }
+    # Сохраняем свежий выпуск первым + до 14 прошлых выпусков
+    history = [new_entry] + history[:14]
     
-    cards_data = json.loads(analysis_json)
     with open("data.json", "w", encoding="utf-8") as f:
-        json.dump(cards_data, f, ensure_ascii=False, indent=2)
+        json.dump({"history": history}, f, ensure_ascii=False, indent=2)
+    print("Архив ретроспективы обновлен.")
+
+if __name__ == "__main__":
+    print("Старт пайплайна мониторинга...", flush=True)
+    raw_data = collect_news()
+    print("Новости получены. Генерация анализа...", flush=True)
     
-    print("Отправка в чат...", flush=True)
-    send_telegram_alert(cards_data)
-    print("Готово: данные сохранены, сводка в чате!", flush=True)
+    result_raw = generate_analysis(raw_data)
+    result = json.loads(result_raw)
+    
+    cards = result.get("cards", [])
+    voice_script = result.get("voice_script", "")
+    
+    # 1. Сохраняем в ретроспективу
+    save_retrospective(cards)
+    
+    # 2. Озвучка и отправка голосового сообщения
+    if voice_script:
+        print("Синтез голосового брифинга...", flush=True)
+        asyncio.run(create_voice_file(voice_script, "briefing.mp3"))
+        send_telegram_voice("briefing.mp3")
+    
+    # 3. Отправка текста с интерактивной кнопкой
+    send_telegram_alert(cards)
+    print("Всё успешно отправлено!")
