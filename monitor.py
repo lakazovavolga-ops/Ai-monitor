@@ -1,12 +1,11 @@
 import os
 import json
 import html
-import asyncio
+import subprocess
 from datetime import datetime, timezone, timedelta
 import feedparser
 import google.generativeai as genai
 import requests
-import edge_tts
 
 TELEGRAM_BOT_TOKEN = os.environ["BOT_TOKEN"]
 TELEGRAM_CHAT_ID = os.environ["CHAT_ID"]
@@ -91,9 +90,17 @@ def generate_analysis(raw_text):
             text = text.rsplit("```", 1)[0]
     return text.strip()
 
-async def create_voice_file(text, output_file="briefing.mp3"):
-    communicate = edge_tts.Communicate(text, voice="ru-RU-DmitryNeural")
-    await communicate.save(output_file)
+def create_voice_file(text, output_file="briefing.mp3"):
+    try:
+        from gtts import gTTS
+    except ImportError:
+        print("Установка gTTS...", flush=True)
+        subprocess.run(["pip", "install", "gTTS"], check=True)
+        from gtts import gTTS
+    
+    tts = gTTS(text=text, lang="ru")
+    tts.save(output_file)
+    print("Голосовой файл briefing.mp3 успешно создан.", flush=True)
 
 def send_telegram_voice(audio_path):
     url = "".join(["https://", "api.telegram.org", "/bot", TELEGRAM_BOT_TOKEN, "/sendVoice"])
@@ -144,7 +151,7 @@ def send_telegram_alert(cards):
         }
     }
     res = requests.post(url, json=payload, timeout=10)
-    print(f"Telegram сообщение: статус {res.status_code}", flush=True)
+    print(f"Telegram статус: {res.status_code}", flush=True)
     res.raise_for_status()
 
 def save_retrospective(cards_data):
@@ -158,24 +165,23 @@ def save_retrospective(cards_data):
                 elif isinstance(existing, list):
                     history = [{"timestamp": "Предыдущий архивный выпуск", "cards": existing}]
         except Exception as e:
-            print(f"Ошибка чтения старого архива: {e}")
+            print(f"Ошибка чтения архива: {e}")
 
     now_str = datetime.now(timezone(timedelta(hours=3))).strftime("%d.%m.%Y %H:%M")
     new_entry = {
         "timestamp": now_str,
         "cards": cards_data
     }
-    # Сохраняем свежий выпуск первым + до 14 прошлых выпусков
     history = [new_entry] + history[:14]
     
     with open("data.json", "w", encoding="utf-8") as f:
         json.dump({"history": history}, f, ensure_ascii=False, indent=2)
-    print("Архив ретроспективы обновлен.")
+    print("Ретроспектива обновлена в data.json", flush=True)
 
 if __name__ == "__main__":
     print("Старт пайплайна мониторинга...", flush=True)
     raw_data = collect_news()
-    print("Новости получены. Генерация анализа...", flush=True)
+    print("Новости получены. Анализ Gemini...", flush=True)
     
     result_raw = generate_analysis(raw_data)
     result = json.loads(result_raw)
@@ -183,15 +189,15 @@ if __name__ == "__main__":
     cards = result.get("cards", [])
     voice_script = result.get("voice_script", "")
     
-    # 1. Сохраняем в ретроспективу
     save_retrospective(cards)
     
-    # 2. Озвучка и отправка голосового сообщения
     if voice_script:
-        print("Синтез голосового брифинга...", flush=True)
-        asyncio.run(create_voice_file(voice_script, "briefing.mp3"))
-        send_telegram_voice("briefing.mp3")
+        try:
+            print("Создание голосового брифинга...", flush=True)
+            create_voice_file(voice_script, "briefing.mp3")
+            send_telegram_voice("briefing.mp3")
+        except Exception as err:
+            print(f"Голосовое сообщение пропущено: {err}", flush=True)
     
-    # 3. Отправка текста с интерактивной кнопкой
     send_telegram_alert(cards)
-    print("Всё успешно отправлено!")
+    print("Все задачи выполнены успешно!", flush=True)
