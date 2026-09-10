@@ -94,7 +94,7 @@ def send_telegram_alert(cards):
     text_lines.append("<i>Полный анализ, цепочки поставок и исторические прецеденты:</i>")
     message_text = "\n".join(text_lines)
 
-    url = f"[https://api.telegram.org/bot](https://api.telegram.org/bot){TELEGRAM_BOT_TOKEN}/sendMessage"
+    /bot](https://api.telegram.org/bot){TELEGRAM_BOT_TOKEN}/sendMessage"
     payload = {
         "chat_id": TELEGRAM_CHAT_ID,
         "text": message_text,
