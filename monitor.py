@@ -34,37 +34,39 @@ def collect_news():
 
 def generate_analysis(raw_text):
     prompt = f"""
-Ты — ведущий геоэкономический аналитик. На основе входящих новостей сформируй анализ строго в формате валидного JSON-массива из объектов.
-Не добавляй никакого вступительного или пояснительного текста, разметки markdown (```json ... ```), выведи только чистый массив JSON.
+Ты — ведущий геоэкономический аналитик. На основе входящих новостей сформируй анализ строго в формате массива JSON-объектов.
+Каждый объект должен содержать:
+- "category": название категории
+- "icon": эмодзи
+- "summary": тезис события в 1-2 предложениях
+- "mechanism": экономический и сырьевой механизм
+- "precedent": исторический прецедент (XX-XXI век)
+- "impact": влияние на обычного человека
 
-Формат каждого объекта:
-{{
-  "category": "Название категории (Геоэкономика, Рынки, ВПК, Технологии или Азия)",
-  "icon": "соответствующий эмодзи",
-  "summary": "Главный вывод и тезис события в 1-2 предложениях (для быстрого чтения за 15 секунд)",
-  "mechanism": "Экономический и производственный механизм (цепочки поставок, капитал, сырье)",
-  "precedent": "Исторический прецедент (аналогия из истории XX-XXI века и чем все закончилось)",
-  "impact": "Влияние на уровень жизни обычного человека"
-}}
-
-Новости для анализа:
+Новости:
 {raw_text}
 """
+    # Включаем принудительный строгий режим JSON на стороне API
+    generation_config = genai.GenerationConfig(
+        response_mime_type="application/json"
+    )
+
     models_to_try = ["gemini-3.6-flash", "gemini-flash-latest", "gemini-3.5-flash"]
     response = None
+
     for model_name in models_to_try:
         try:
             print(f"Подключение к модели: {model_name}")
-            model = genai.GenerativeModel(model_name)
+            model = genai.GenerativeModel(model_name, generation_config=generation_config)
             res = model.generate_content(prompt)
             if res and res.text:
                 response = res
                 break
         except Exception as err:
-            print(f"Модель {model_name} не ответила: {err}")
+            print(f"Модель {model_name} вернула ошибку: {err}")
 
     if not response:
-        raise RuntimeError("Не удалось получить ответ ни от одной модели Gemini.")
+        raise RuntimeError("Не удалось получить валидный ответ от моделей Gemini.")
 
     text = response.text.strip()
     if text.startswith("```"):
@@ -82,7 +84,7 @@ def send_telegram_alert(cards):
         text_lines.append(f"{icon} <b>{cat}</b>")
         text_lines.append(f"{summary}\n")
 
-    text_lines.append("<i>Полный анализ, исторические прецеденты и цепочки поставок — в мониторе:</i>")
+    text_lines.append("<i>Полный анализ, цепочки поставок и исторические прецеденты:</i>")
     message_text = "\n".join(text_lines)
 
     url = f"[https://api.telegram.org/bot](https://api.telegram.org/bot){TELEGRAM_BOT_TOKEN}/sendMessage"
@@ -102,7 +104,7 @@ def send_telegram_alert(cards):
         }
     }
     res = requests.post(url, json=payload)
-    print(f"Статус отправки в Telegram: {res.status_code}")
+    print(f"Telegram API: статус {res.status_code}")
     res.raise_for_status()
 
 if __name__ == "__main__":
@@ -114,4 +116,4 @@ if __name__ == "__main__":
         json.dump(cards_data, f, ensure_ascii=False, indent=2)
     
     send_telegram_alert(cards_data)
-    print("Сводка успешно доставлена в группу.")
+    print("Готово: данные записаны, сводка отправлена.")
