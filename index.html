@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Глобальный Геоэкономический Монитор</title>
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script src="[https://telegram.org/js/telegram-web-app.js](https://telegram.org/js/telegram-web-app.js)"></script>
   <style>
     :root {
       --bg-color: var(--tg-theme-bg-color, #0f172a);
@@ -12,24 +12,25 @@
       --text-main: var(--tg-theme-text-color, #f8fafc);
       --text-muted: var(--tg-theme-hint-color, #94a3b8);
       --accent: var(--tg-theme-button-color, #38bdf8);
-      --accent-text: var(--tg-theme-button-text-color, #0f172a);
       --border: #334155;
+      --impact-bg: rgba(245, 158, 11, 0.1);
+      --impact-border: #f59e0b;
     }
     body {
       margin: 0;
       padding: 16px;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       background-color: var(--bg-color);
       color: var(--text-main);
       -webkit-tap-highlight-color: transparent;
     }
     header {
-      margin-bottom: 20px;
+      margin-bottom: 16px;
       border-bottom: 1px solid var(--border);
       padding-bottom: 12px;
     }
     h1 {
-      font-size: 1.2rem;
+      font-size: 1.25rem;
       margin: 0 0 6px 0;
       display: flex;
       align-items: center;
@@ -43,10 +44,21 @@
       border-radius: 12px;
       font-weight: 600;
     }
-    .subtitle {
+    .history-bar {
+      margin-top: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    select {
+      background: var(--card-bg);
+      color: var(--text-main);
+      border: 1px solid var(--border);
+      padding: 8px 12px;
+      border-radius: 8px;
       font-size: 0.85rem;
-      color: var(--text-muted);
-      margin: 0;
+      width: 100%;
+      outline: none;
     }
     .card {
       background-color: var(--card-bg);
@@ -57,7 +69,7 @@
       box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     }
     .card-title {
-      font-size: 1rem;
+      font-size: 1.05rem;
       font-weight: 700;
       margin: 0 0 10px 0;
       display: flex;
@@ -67,7 +79,19 @@
     .summary {
       font-size: 0.95rem;
       line-height: 1.45;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
+    }
+    .impact-box {
+      background: var(--impact-bg);
+      border-left: 3px solid var(--impact-border);
+      padding: 8px 12px;
+      border-radius: 4px;
+      font-size: 0.88rem;
+      line-height: 1.4;
+      margin-bottom: 10px;
+    }
+    .impact-box strong {
+      color: #fbbf24;
     }
     details {
       border-top: 1px dashed var(--border);
@@ -84,32 +108,21 @@
       align-items: center;
       justify-content: space-between;
     }
-    summary::-webkit-details-marker {
-      display: none;
-    }
-    summary::after {
-      content: "↓ Развернуть анализ";
-    }
-    details[open] summary::after {
-      content: "↑ Свернуть";
-    }
+    summary::-webkit-details-marker { display: none; }
+    summary::after { content: "↓ Анализ и цепочки"; }
+    details[open] summary::after { content: "↑ Свернуть"; }
     .deep-dive {
       margin-top: 10px;
       font-size: 0.88rem;
       line-height: 1.4;
       color: var(--text-muted);
     }
-    .deep-dive p {
-      margin: 6px 0;
-    }
-    .deep-dive strong {
-      color: var(--text-main);
-    }
+    .deep-dive p { margin: 6px 0; }
+    .deep-dive strong { color: var(--text-main); }
     #loading {
       text-align: center;
       color: var(--text-muted);
       padding: 30px;
-      font-size: 0.9rem;
     }
   </style>
 </head>
@@ -117,50 +130,76 @@
 
   <header>
     <h1>🌐 Терминал Аналитики <span class="badge">LIVE</span></h1>
-    <p class="subtitle">Сквозной геоэкономический монитор и исторические маркеры</p>
+    <div class="history-bar">
+      <select id="edition-select">
+        <option>Загрузка архива...</option>
+      </select>
+    </div>
   </header>
 
   <div id="cards-container">
-    <div id="loading">Загрузка свежих данных мониторинга...</div>
+    <div id="loading">Загрузка данных...</div>
   </div>
 
   <script>
-    const tg = window.Telegram.WebApp;
-    if (tg) {
-      tg.ready();
-      tg.expand();
+    let globalHistory = [];
+
+    function renderCards(cards) {
+      const container = document.getElementById('cards-container');
+      container.innerHTML = '';
+      cards.forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `
+          <div class="card-title">${item.icon || '🔹'} ${item.category}</div>
+          <div class="summary">${item.summary}</div>
+          ${item.impact ? `
+            <div class="impact-box">
+              <strong>💡 Прикладной вывод:</strong> ${item.impact}
+            </div>` : ''}
+          <details>
+            <summary></summary>
+            <div class="deep-dive">
+              ${item.mechanism ? `<p><strong>Цепочки и механизм:</strong> ${item.mechanism}</p>` : ''}
+              ${item.precedent ? `<p><strong>Исторический прецедент:</strong> ${item.precedent}</p>` : ''}
+            </div>
+          </details>
+        `;
+        container.appendChild(card);
+      });
     }
 
-    // Загружаем сгенерированный AI файл data.json
     fetch('data.json?v=' + new Date().getTime())
-      .then(response => {
-        if (!response.ok) throw new Error('Данные еще формируются');
-        return response.json();
-      })
+      .then(res => res.json())
       .then(data => {
-        const container = document.getElementById('cards-container');
-        container.innerHTML = '';
+        const select = document.getElementById('edition-select');
+        select.innerHTML = '';
 
-        data.forEach(item => {
-          const card = document.createElement('div');
-          card.className = 'card';
-          card.innerHTML = `
-            <div class="card-title">${item.icon || '🔹'} ${item.category}</div>
-            <div class="summary">${item.summary}</div>
-            <details>
-              <summary></summary>
-              <div class="deep-dive">
-                ${item.mechanism ? `<p><strong>Механизм:</strong> ${item.mechanism}</p>` : ''}
-                ${item.precedent ? `<p><strong>Прецедент:</strong> ${item.precedent}</p>` : ''}
-                ${item.impact ? `<p><strong>Влияние на жизнь:</strong> ${item.impact}</p>` : ''}
-              </div>
-            </details>
-          `;
-          container.appendChild(card);
+        if (data.history && Array.isArray(data.history)) {
+          globalHistory = data.history;
+          globalHistory.forEach((entry, index) => {
+            const opt = document.createElement('option');
+            opt.value = index;
+            opt.innerText = `📅 Выпуск: ${entry.timestamp}`;
+            select.appendChild(opt);
+          });
+          renderCards(globalHistory[0].cards);
+        } else if (Array.isArray(data)) {
+          const opt = document.createElement('option');
+          opt.innerText = '📅 Текущий выпуск';
+          select.appendChild(opt);
+          renderCards(data);
+        }
+
+        select.addEventListener('change', (e) => {
+          const idx = e.target.value;
+          if (globalHistory[idx]) {
+            renderCards(globalHistory[idx].cards);
+          }
         });
       })
       .catch(err => {
-        document.getElementById('loading').innerText = 'Загружаются актуальные данные... Обновите страницу через минуту.';
+        document.getElementById('loading').innerText = 'Ошибка загрузки архива.';
       });
   </script>
 </body>
