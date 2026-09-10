@@ -8,7 +8,8 @@ import requests
 TELEGRAM_BOT_TOKEN = os.environ["BOT_TOKEN"]
 TELEGRAM_CHAT_ID = os.environ["CHAT_ID"]
 GEMINI_API_KEY = os.environ["GEMINI_API_KEY"]
-WEB_APP_URL = "https://lakazovavolga-ops.github.io/Ai-monitor/"
+
+WEB_APP_URL = "https://" + "lakazovavolga-ops.github.io/Ai-monitor/"
 
 genai.configure(api_key=GEMINI_API_KEY)
 
@@ -21,7 +22,7 @@ RSS_FEEDS = {
 }
 
 HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
 }
 
 def collect_news():
@@ -29,14 +30,13 @@ def collect_news():
     for category, url in RSS_FEEDS.items():
         try:
             print(f"Загрузка RSS: {category}...", flush=True)
-            # Жесткий таймаут 6 секунд, чтобы не зависать
             resp = requests.get(url, headers=HEADERS, timeout=6)
             feed = feedparser.parse(resp.content)
             for entry in feed.entries[:2]:
                 summary = entry.get('summary', '')[:250]
                 items.append(f"[{category}] {entry.title}: {summary}")
         except Exception as e:
-            print(f"Пропуск {category} (сервер не ответил вовремя): {e}", flush=True)
+            print(f"Пропуск {category}: {e}", flush=True)
     return "\n".join(items)
 
 def generate_analysis(raw_text):
@@ -94,7 +94,7 @@ def send_telegram_alert(cards):
     text_lines.append("<i>Полный анализ, цепочки поставок и исторические прецеденты:</i>")
     message_text = "\n".join(text_lines)
 
-    /bot](https://api.telegram.org/bot){TELEGRAM_BOT_TOKEN}/sendMessage"
+    telegram_api_url = "".join(["https://", "api.telegram.org", "/bot", TELEGRAM_BOT_TOKEN, "/sendMessage"])
     payload = {
         "chat_id": TELEGRAM_CHAT_ID,
         "text": message_text,
@@ -110,7 +110,7 @@ def send_telegram_alert(cards):
             ]
         }
     }
-    res = requests.post(url, json=payload, timeout=10)
+    res = requests.post(telegram_api_url, json=payload, timeout=10)
     print(f"Telegram статус: {res.status_code}", flush=True)
     res.raise_for_status()
 
