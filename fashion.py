@@ -10,6 +10,7 @@ import requests
 TELEGRAM_BOT_TOKEN = os.environ["BOT_TOKEN"]
 TELEGRAM_CHAT_ID = os.environ["CHAT_ID"]
 GEMINI_API_KEY = os.environ["GEMINI_API_KEY"]
+
 WEB_APP_URL = "https://" + "lakazovavolga-ops.github.io/Ai-monitor/"
 
 genai.configure(api_key=GEMINI_API_KEY)
@@ -49,7 +50,7 @@ def collect_fashion_news():
                     "image": img
                 })
         except Exception as e:
-            print(f"Ошибка загрузки RSS {url}: {e}", flush=True)
+            print(f"Пропуск RSS: {e}", flush=True)
     return candidates
 
 def analyze_fashion(news_items):
@@ -64,7 +65,7 @@ def analyze_fashion(news_items):
   "brand": "Бренд или модный дом",
   "topic": "Название образа или коллекции в 3-5 словах",
   "image_url": "Точная ссылка на изображение из предоставленного объекта (не меняй её)",
-  "colors": "Модная палитра (назови 2-3 сложных трендовых оттенка, например: 'шоколадный трюфель, сливочный butter yellow')",
+  "colors": "Модная палитра (назови 2-3 сложных трендовых оттенка)",
   "cut_silhouette": "Фасон и архитектура кроя (линия плеча, талия, посадка, пропорции)",
   "materials": "Материалы и фактуры (шерсть, плотный габардин, шелк, кожа)",
   "practical_tip": "Как применить этот образ в повседневном гардеробе обычной жизни без люксовых затрат"
@@ -106,8 +107,10 @@ def send_fashion_telegram(data):
         ]
     }
 
+    tg_api_base = "".join(["https://", "api.telegram.org", "/bot", TELEGRAM_BOT_TOKEN])
+
     if image_url and image_url.startswith("http"):
-        url = f"[https://api.telegram.org/bot](https://api.telegram.org/bot){TELEGRAM_BOT_TOKEN}/sendPhoto"
+        send_photo_url = tg_api_base + "/sendPhoto"
         payload = {
             "chat_id": TELEGRAM_CHAT_ID,
             "photo": image_url,
@@ -115,19 +118,19 @@ def send_fashion_telegram(data):
             "parse_mode": "HTML",
             "reply_markup": reply_markup
         }
-        res = requests.post(url, json=payload, timeout=20)
+        res = requests.post(send_photo_url, json=payload, timeout=20)
         if res.status_code == 200:
-            print("Фото-пост моды отправлен.", flush=True)
+            print("Фото-пост моды успешно отправлен в Telegram.", flush=True)
             return
 
-    url = f"[https://api.telegram.org/bot](https://api.telegram.org/bot){TELEGRAM_BOT_TOKEN}/sendMessage"
+    send_msg_url = tg_api_base + "/sendMessage"
     payload = {
         "chat_id": TELEGRAM_CHAT_ID,
         "text": caption,
         "parse_mode": "HTML",
         "reply_markup": reply_markup
     }
-    requests.post(url, json=payload, timeout=15)
+    requests.post(send_msg_url, json=payload, timeout=15)
     print("Текстовый пост моды отправлен.", flush=True)
 
 def save_fashion_history(item):
@@ -154,4 +157,4 @@ if __name__ == "__main__":
         analysis = analyze_fashion(news)
         save_fashion_history(analysis)
         send_fashion_telegram(analysis)
-    print("Готово!", flush=True)
+    print("Модный блок завершил работу!", flush=True)
