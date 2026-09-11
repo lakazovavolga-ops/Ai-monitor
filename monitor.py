@@ -10,7 +10,7 @@ import requests
 TELEGRAM_BOT_TOKEN = os.environ["BOT_TOKEN"]
 TELEGRAM_CHAT_ID = os.environ["CHAT_ID"]
 GEMINI_API_KEY = os.environ["GEMINI_API_KEY"]
-WEB_APP_URL = "https://lakazovavolga-ops.github.io/Ai-monitor/"
+WEB_APP_URL = "https://" + "lakazovavolga-ops.github.io/Ai-monitor/"
 
 genai.configure(api_key=GEMINI_API_KEY)
 
@@ -42,23 +42,22 @@ def collect_news():
 
 def generate_analysis(raw_text):
     prompt = f"""
-Ты — ведущий геоэкономический и промышленный аналитик. Перед тобой сырые сводки новостей:
+Ты — ведущий геоэкономический и промышленный аналитик. Перед тобой сводки новостей:
 {raw_text}
 
-Сформируй полноценный, плотный аналитический отчет без воды и лозунгов. 
-Выбери 4-5 ключевых системных событий и разбери их глубоко.
+Сформируй полноценный аналитический отчет. Выбери 4-5 ключевых системных событий и разбери их глубоко.
 
-Верни строго JSON со следующей структурой:
+Верни строго JSON:
 {{
-  "voice_script": "Связанный текст для диктора на 45-60 секунд спокойным тоном новостного обозревателя. Начни с 'Здравствуйте. Краткий геоэкономический брифинг.' Озвучь 2-3 ключевых сдвига без спецсимволов.",
+  "voice_script": "Связанный текст для диктора на 45-60 секунд спокойным тоном новостного обозревателя. Начни с 'Здравствуйте. Краткий геоэкономический брифинг.' Озвучь 2-3 ключевых сдвига без эмодзи и спецсимволов.",
   "cards": [
     {{
-      "category": "Тематика (например: Рынок энергоносителей, ВПК, Полупроводники)",
+      "category": "Тематика (например: Энергетика, ВПК, Логистика, Санкции)",
       "icon": "соответствующий эмодзи",
-      "title": "Суть события емко и точно",
-      "deep_analysis": "Обстоятельный разбор: что произошло, какие производственные или финансовые цепочки затронуты, кто теряет маржу, какие объемы или логистические маршруты под угрозой (3-5 содержательных предложений с фактурой).",
+      "title": "Суть события емко",
+      "deep_analysis": "Обстоятельный разбор: что произошло, какие производственные или финансовые цепочки затронуты, кто теряет маржу, какие объемы или маршруты под угрозой (3-5 содержательных предложений).",
       "precedent": "Исторический прецедент (XX-XXI век, аналог текущей ситуации и к чему он привел).",
-      "impact": "Прикладной вывод: реальные последствия для бытовых потребителей (цены на технику, бензин, автозапчасти, продовольствие или курсы валют)."
+      "impact": "Прикладной вывод: последствия для обычных людей (цены на технику, бензин, автозапчасти, продукты, валюту)."
     }}
   ]
 }}
@@ -85,7 +84,7 @@ def create_voice_file(text, output_file="briefing.mp3"):
     tts.save(output_file)
 
 def send_telegram_voice(audio_path):
-    url = f"[https://api.telegram.org/bot](https://api.telegram.org/bot){TELEGRAM_BOT_TOKEN}/sendVoice"
+    tg_voice_url = "".join(["https://", "api.telegram.org", "/bot", TELEGRAM_BOT_TOKEN, "/sendVoice"])
     try:
         with open(audio_path, "rb") as audio:
             files = {"voice": audio}
@@ -94,12 +93,13 @@ def send_telegram_voice(audio_path):
                 "caption": "🎙 <b>Голосовой аналитический брифинг</b>",
                 "parse_mode": "HTML"
             }
-            requests.post(url, data=data, files=files, timeout=40)
+            requests.post(tg_voice_url, data=data, files=files, timeout=40)
+            print("Аудио-брифинг отправлен.", flush=True)
     except Exception as e:
-        print(f"Ошибка аудио: {e}", flush=True)
+        print(f"Ошибка отправки аудио: {e}", flush=True)
 
 def send_telegram_posts(cards):
-    tg_url = f"[https://api.telegram.org/bot](https://api.telegram.org/bot){TELEGRAM_BOT_TOKEN}/sendMessage"
+    tg_msg_url = "".join(["https://", "api.telegram.org", "/bot", TELEGRAM_BOT_TOKEN, "/sendMessage"])
     
     messages = []
     current_chunk = ["🌐 <b>Глобальный Монитор: Развернутый анализ</b>\n"]
@@ -119,7 +119,6 @@ def send_telegram_posts(cards):
             f"💡 <i>Прикладной вывод:</i> {impact}\n"
         )
         
-        # Контроль длины сообщения Telegram (до 4096 символов)
         if len("\n".join(current_chunk)) + len(block) > 3800:
             messages.append("\n".join(current_chunk))
             current_chunk = [block]
@@ -142,7 +141,8 @@ def send_telegram_posts(cards):
                     [{"text": "📊 Интерактивный архив и графики", "url": WEB_APP_URL}]
                 ]
             }
-        requests.post(tg_url, json=payload, timeout=15)
+        res = requests.post(tg_msg_url, json=payload, timeout=15)
+        print(f"Сообщение {i+1} отправлено со статусом: {res.status_code}", flush=True)
 
 def save_retrospective(cards_data):
     history = []
