@@ -1,7 +1,7 @@
 import os
 import json
+import html
 import urllib.parse
-import textwrap
 import io
 from datetime import datetime, timezone, timedelta
 import google.generativeai as genai
@@ -26,16 +26,16 @@ def get_time_slot():
 def generate_card_data(slot):
     prompt = f"""
 Ти створюєш теплу естетичну листівку українською мовою.
-Час доби: {slot} (ранок = доброго ранку/гарного дня; вечір = затишного теплого вечора; ніч = спокійної тихої мирної ночі).
+Час доби: {slot} (ранок = доброго ранку; вечір = затишного вечора; ніч = мирної спокійної ночі).
 
 Вимоги:
-1. "caption": Щире, коротке і тепле побажання українською мовою (1-2 лаконічних речення, щоб гарно виглядало на фото). Без віршів. Акцент на затишок, тепло, ранкову каву/чай, спокій і мир.
+1. "caption": Коротке, дуже містке та щире побажання українською мовою (строго 1-2 речення, до 15-18 слів, щоб красиво лягло на листівку). Теми: спокій, домашнє тепло, гармонія, чашка чаю/кави, тихий вечір.
 2. "image_prompt": Детальний промпт для фотогенерації АНГЛІЙСЬКОЮ мовою.
-Стиль: Ultra-realistic cozy lifestyle and nature photography, warm natural golden hour sunlight, authentic country house terrace, wooden table with ceramic mug, fresh garden flowers, morning dew, 35mm film aesthetic. Без людей у кадрі, тільки природа і затишок.
+Стиль: Ultra-realistic cozy lifestyle and nature photography, warm natural sunlight, authentic country house terrace, wooden table with ceramic mug, fresh garden flowers, 35mm film photography aesthetic, soft warm shadows. Без людей у кадрі.
 
 Відповідай СУВОРО у форматі JSON:
 {{
-  "caption": "коротке побажання українською",
+  "caption": "коротке лаконічне побажання українською",
   "image_prompt": "detailed english prompt for realistic photography"
 }}
 """
@@ -50,55 +50,95 @@ def generate_card_data(slot):
             text = text.rsplit("```", 1)[0]
     return json.loads(text.strip())
 
-def add_text_watermark(image_bytes, text_to_draw):
-    # Открываем картинку через Pillow
+def wrap_by_pixels(text, font, max_px):
+    words = text.split()
+    lines = []
+    current_line = []
+    
+    for word in words:
+        test = " ".join(current_line + [word])
+        try:
+            bbox = font.getbbox(test)
+            w = bbox[2] - bbox[0]
+        except:
+            w = font.getlength(test)
+            
+        if w <= max_px:
+            current_line.append(word)
+        else:
+            if current_line:
+                lines.append(" ".join(current_line))
+                current_line = [word]
+            else:
+                lines.append(word)
+                current_line = []
+    if current_line:
+        lines.append(" ".join(current_line))
+    return lines
+
+def process_card_image(image_bytes, text_to_draw):
     img = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+    w, h = img.size
+    
+    # Срезаем нижнюю полосу (55px), полностью удаляя водяной знак pollinations
+    img = img.crop((0, 0, w, h - 55))
     w, h = img.size
     
     draw = ImageDraw.Draw(img, "RGBA")
     
-    # Пытаемся загрузить стандартный шрифт Ubuntu
     font_path = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
-    font_size = int(w * 0.038)
+    font_size = int(w * 0.033)
     try:
         font = ImageFont.truetype(font_path, font_size)
     except:
         font = ImageFont.load_default()
         
-    # Форматируем текст по строкам
-    max_chars = int(w / (font_size * 0.55))
-    lines = textwrap.wrap(text_to_draw, width=max_chars)
+    # Ограничиваем ширину текста до 78% от ширины кадра (гарантированная защита от обрезки)
+    max_text_px = int(w * 0.78)
+    lines = wrap_by_pixels(text_to_draw, font, max_text_px)
     
-    line_height = font_size * 1.4
-    box_height = int(len(lines) * line_height + font_size * 1.5)
+    line_h = int(font_size * 1.45)
+    pad_y = int(font_size * 1.1)
+    pad_x = int(w * 0.05)
     
-    # Координаты для нижней плашки
-    margin = int(w * 0.04)
-    box_y0 = h - box_height - margin
-    box_y1 = h - margin
-    box_x0 = margin
-    box_x1 = w - margin
-    
-    # Рисуем полупрозрачную элегантную плашку с закругленными углами
-    draw.rounded_rectangle([box_x0, box_y0, box_x1, box_y1], radius=16, fill=(0, 0, 0, 150))
-    
-    # Рисуем текст по центру плашки
-    current_y = box_y0 + font_size * 0.75
+    # Вычисляем точную ширину самой длинной строки
+    max_measured_w = 0
     for line in lines:
         try:
-            bbox = font.getbbox(line)
-            text_w = bbox[2] - bbox[0]
+            bb = font.getbbox(line)
+            lw = bb[2] - bb[0]
         except:
-            text_w = font.getlength(line)
+            lw = font.getlength(line)
+        if lw > max_measured_w:
+            max_measured_w = lw
             
-        text_x = (w - text_w) / 2
-        draw.text((text_x, current_y), line, font=font, fill=(255, 255, 255, 255))
-        current_y += line_height
+    box_w = max_measured_w + (pad_x * 2)
+    box_h = (len(lines) * line_h) + (pad_y * 1.5)
+    
+    # Центрируем плашку снизу
+    box_x0 = int((w - box_w) / 2)
+    box_x1 = box_x0 + box_w
+    box_y1 = int(h - (w * 0.05))
+    box_y0 = int(box_y1 - box_h)
+    
+    # Полупрозрачная черная подложка
+    draw.rounded_rectangle([box_x0, box_y0, box_x1, box_y1], radius=18, fill=(0, 0, 0, 160))
+    
+    # Отрисовка строк строго по центру плашки
+    cur_y = box_y0 + pad_y
+    for line in lines:
+        try:
+            bb = font.getbbox(line)
+            lw = bb[2] - bb[0]
+        except:
+            lw = font.getlength(line)
+        text_x = int(box_x0 + (box_w - lw) / 2)
+        draw.text((text_x, cur_y), line, font=font, fill=(255, 255, 255, 255))
+        cur_y += line_h
         
-    # Сохраняем в байты JPEG
-    output = io.BytesIO()
-    img.save(output, format="JPEG", quality=95)
-    return output.getvalue()
+    out = io.BytesIO()
+    img.save(out, format="JPEG", quality=95)
+    return out.getvalue()
 
 def send_postcard():
     slot = get_time_slot()
@@ -106,7 +146,7 @@ def send_postcard():
     data = generate_card_data(slot)
     
     caption_text = data.get("caption", "Доброго та затишного дня!")
-    raw_prompt = data.get("image_prompt", "cozy country morning garden flowers soft light")
+    raw_prompt = data.get("image_prompt", "cozy country evening garden flowers tea soft light")
     
     encoded_prompt = urllib.parse.quote(raw_prompt)
     flux_base = "".join(["https://", "image.pollinations.ai", "/prompt/"])
@@ -116,19 +156,19 @@ def send_postcard():
     img_resp = requests.get(image_url, timeout=60)
     img_resp.raise_for_status()
     
-    print("Накладання тексту на листівку...", flush=True)
-    final_image_bytes = add_text_watermark(img_resp.content, caption_text)
+    print("Обробка: зріз логотипу та точне центрування тексту...", flush=True)
+    final_bytes = process_card_image(img_resp.content, caption_text)
     
     print("Відправка готової листівки в Telegram...", flush=True)
     tg_url = "".join(["https://", "api.telegram.org", "/bot", TELEGRAM_BOT_TOKEN, "/sendPhoto"])
     
     data_payload = {
         "chat_id": CHAT_ID,
-        "caption": "🌿 Затишна листівка для вас",
+        "caption": "🌿 Затишна листівка",
         "parse_mode": "HTML"
     }
     files = {
-        "photo": ("postcard.jpg", final_image_bytes, "image/jpeg")
+        "photo": ("postcard.jpg", final_bytes, "image/jpeg")
     }
     
     res = requests.post(tg_url, data=data_payload, files=files, timeout=40)
