@@ -1,5 +1,28 @@
 [
   {
+    "brand": "Proenza Schouler",
+    "topic": "Архитектурный расслабленный минимализм Весна 2027",
+    "image_url": "https://fashionista.com/.image/NTg6MDAwMDAwMDAwNzk1Mzk3/proenza-schouler-spring-2027.png?profile=rss",
+    "palette": [
+      {
+        "name": "Глубокий мокрый асфальт",
+        "hex": "#2B2D2F"
+      },
+      {
+        "name": "Сливочный пергамент",
+        "hex": "#F5F0E6"
+      },
+      {
+        "name": "Выдержанный эспрессо",
+        "hex": "#3C2A21"
+      }
+    ],
+    "cut_silhouette": "Свободный асимметричный крой со спущенной линией плеча, расслабленными пропорциями и вытянутым вертикальным силуэтом.",
+    "materials": "Матовая тонкая шерсть, структурированная гладкая кожа и мягкий ниспадающий трикотаж.",
+    "practical_tip": "Сочетайте оверсайз-жакет мужского кроя с контрастным лаконичным топом и добавляйте акцентную структурированную сумку в сдержанной гамме.",
+    "date": "11.09.2026"
+  },
+  {
     "brand": "HOMME PLISSÉ ISSEY MIYAKE",
     "topic": "Плиссировка по мотивам Анри Матисса",
     "image_url": "https://image-cdn.hypb.st/https%3A%2F%2Fhypebeast.com%2Fimage%2F2026%2F09%2F10%2Fhomme-plisse-issey-miyake-second-open-studio-edition-tate-modern-inspired-by-henri-matisse-the-snail-release-info-1.jpg?w=800&amp;cbr=1&amp;q=90&amp;fit=max",
