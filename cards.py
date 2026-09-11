@@ -58,7 +58,10 @@ def send_postcard():
     raw_prompt = data.get("image_prompt", "cozy country morning garden flowers soft light")
     
     encoded_prompt = urllib.parse.quote(raw_prompt)
-    image_url = f"[https://image.pollinations.ai/prompt/](https://image.pollinations.ai/prompt/){encoded_prompt}?width=1080&height=1350&model=flux&nologo=true"
+    
+    # Защищенная склейка адреса генератора
+    flux_base = "".join(["https://", "image.pollinations.ai", "/prompt/"])
+    image_url = f"{flux_base}{encoded_prompt}?width=1080&height=1350&model=flux&nologo=true"
     
     print("Завантаження зображення через Flux...", flush=True)
     img_resp = requests.get(image_url, timeout=60)
