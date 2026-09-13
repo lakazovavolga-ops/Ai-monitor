@@ -1,5 +1,28 @@
 [
   {
+    "brand": "Altuzarra",
+    "topic": "Гендерная пластика и эстетика 60-х",
+    "image_url": "https://fashionista.com/.image/NTg6MDAwMDAwMDAwNzk2Mjcz/untitled.jpg?profile=rss",
+    "palette": [
+      {
+        "name": "Винтажная слоновая кость",
+        "hex": "#F4F0EA"
+      },
+      {
+        "name": "Благородный оливково-серый",
+        "hex": "#70786D"
+      },
+      {
+        "name": "Теплый песчаник",
+        "hex": "#C2A68C"
+      }
+    ],
+    "cut_silhouette": "Свободный маскулинный крой с четкой линией плеч, сбалансированный мягкой драпировкой и подчеркнутой талией",
+    "materials": "Шерстяной габардин тонкой выделки, струящийся шелк, матовая замша",
+    "practical_tip": "Сочетайте оверсайз-пиджак мужского кроя со струящейся шелковой юбкой миди, чтобы воссоздать гармонию маскулинности и женственности",
+    "date": "13.09.2026"
+  },
+  {
     "brand": "Tory Burch",
     "topic": "Красочный побег от современной дистопии",
     "image_url": "https://fashionista.com/.image/NTg6MDAwMDAwMDAwNzk1NTc2/tory-burch-spring-2027.jpg?profile=rss&x=46&y=22",
