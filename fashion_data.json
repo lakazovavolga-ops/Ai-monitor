@@ -1,5 +1,28 @@
 [
   {
+    "brand": "Carolina Herrera",
+    "topic": "Юбилейная кутюрная элегантность Нью-Йорка",
+    "image_url": "https://fashionista.com/.image/NTg6MDAwMDAwMDAwNzk3MzQ2/carolina-herrera-spring-2027.png?profile=rss",
+    "palette": [
+      {
+        "name": "Насыщенный кутюрный алый",
+        "hex": "#C62828"
+      },
+      {
+        "name": "Сливочный фарфор айвори",
+        "hex": "#F9F6F0"
+      },
+      {
+        "name": "Глубокий индиго-ультрамарин",
+        "hex": "#1B263B"
+      }
+    ],
+    "cut_silhouette": "Архитектурный и скульптурный крой: четко очерченная линия плеч, выраженная приталенность и летящие драматичные пропорции нижней части образа.",
+    "materials": "Плотный шелковый микадо, глянцевый атлас премиальной выделки, легкая органза и структурная тафта.",
+    "practical_tip": "Сочетайте безупречную структурированную белую рубашку мужского кроя с объемной юбкой миди или широкими брюками со стрелками, завершая образ одним ярким алым аксессуаром.",
+    "date": "15.09.2026"
+  },
+  {
     "brand": "Proenza Schouler",
     "topic": "Анатомический тейлоринг с мягкими драпировками",
     "image_url": "https://image-cdn.hypb.st/https%3A%2F%2Fhypebeast.com%2Fimage%2F2026%2F09%2F14%2FProenza-Schouler-spring-summer-2027-SS27-Collection-Runway-Show-0.jpg?w=800&amp;cbr=1&amp;q=90&amp;fit=max",
