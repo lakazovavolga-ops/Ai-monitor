@@ -1,5 +1,28 @@
 [
   {
+    "brand": "Calvin Klein",
+    "topic": "Американский минимализм с вытянутыми пропорциями",
+    "image_url": "https://image-cdn.hypb.st/https%3A%2F%2Fhypebeast.com%2Fimage%2F2026%2F09%2F16%2Fcalvin-klein-spring-2027-collection-runway-show-veronica-leoni-new-york-fashion-week-0.jpg?w=800&amp;cbr=1&amp;q=90&amp;fit=max",
+    "palette": [
+      {
+        "name": "Меловой слоновая кость",
+        "hex": "#ECE8DF"
+      },
+      {
+        "name": "Терракотовая охра Джорджии О'Кифф",
+        "hex": "#C0623B"
+      },
+      {
+        "name": "Мокрый графит",
+        "hex": "#343538"
+      }
+    ],
+    "cut_silhouette": "Удлиненные вертикальные пропорции, мягко акцентированное плечо, расслабленная талия и четкий архитектурный тейлоринг.",
+    "materials": "Сухой костюмный хлопок, струящаяся вискоза, легкая шерсть премиальной выделки и фактурный трикотаж.",
+    "practical_tip": "Инвестируйте в удлиненный оверсайз-жакет и брюки палаццо в светлой монохромной гамме, добавив контрастный аксессуар оттенка охры или терракоты для создания лаконичного интеллектуального образа.",
+    "date": "16.09.2026"
+  },
+  {
     "brand": "Carolina Herrera",
     "topic": "Юбилейная кутюрная элегантность Нью-Йорка",
     "image_url": "https://fashionista.com/.image/NTg6MDAwMDAwMDAwNzk3MzQ2/carolina-herrera-spring-2027.png?profile=rss",
