@@ -1,5 +1,28 @@
 [
   {
+    "brand": "Prada",
+    "topic": "Интеллектуальный минимализм и концептуальная классика",
+    "image_url": "https://fashionista.com/.image/NTg6MDAwMDAwMDAwODA1ODEy/zooey-deschanel-2.png?profile=rss",
+    "palette": [
+      {
+        "name": "Глубокий эспрессо",
+        "hex": "#2B1B17"
+      },
+      {
+        "name": "Сливочный овес",
+        "hex": "#E6DFD5"
+      },
+      {
+        "name": "Холодный стальной",
+        "hex": "#7A8B99"
+      }
+    ],
+    "cut_silhouette": "Четкая геометрия с графичным плечевым поясом, строгий прямолинейный силуэт и выверенный оверсайз.",
+    "materials": "Плотная костюмная шерсть, фирменный матовый нейлон, гладкая кожа и шелковистый трикотаж.",
+    "practical_tip": "Сочетайте строгий мужской пиджак свободного кроя с зауженными брюками со стрелками, разбавляя архитектурный силуэт мягким топом пастельного оттенка.",
+    "date": "03.11.2026"
+  },
+  {
     "brand": "Burberry x Palace",
     "topic": "Капсула с обновленным пальто Camden",
     "image_url": "https://image-cdn.hypb.st/https%3A%2F%2Fhypebeast.com%2Fimage%2F2026%2F10%2F31%2Fpalace-skateboard-burberry-limited-edition-capsule-london-flagship-opening-exclusive-collaboration-release-info-000.jpg?w=800&amp;cbr=1&amp;q=90&amp;fit=max",
@@ -205,28 +228,5 @@
     "materials": "Премиальная матовая шерсть высокого качества, мягкая замша и гладкая тонкая кожа.",
     "practical_tip": "Комбинируйте спортивный комплект из плотной шерсти со строгим пальто маскулинного кроя и минималистичными кожаными кедами.",
     "date": "22.10.2026"
-  },
-  {
-    "brand": "Balenciaga",
-    "topic": "Капсула Fenomeno с мотокурткой",
-    "image_url": "https://image-cdn.hypb.st/https%3A%2F%2Fhypebeast.com%2Fimage%2F2026%2F10%2F21%2FBalenciaga-Automobili-Lamborghini-Collaboration-collection-Release-Info.jpg?w=800&cbr=1&q=90&fit=max",
-    "palette": [
-      {
-        "name": "Глубокий матовый антрацит",
-        "hex": "#1A1A1A"
-      },
-      {
-        "name": "Вороново крыло",
-        "hex": "#0D0D0D"
-      },
-      {
-        "name": "Холодный титановый металлик",
-        "hex": "#8A8D91"
-      }
-    ],
-    "cut_silhouette": "Гипертрофированный оверсайз с жесткой линией плеч, объемным кроем и архитектурным мотоциклетным силуэтом.",
-    "materials": "Плотная натуральная кожа с легким винтажным эффектом, прочный нейлон и металлическая фурнитура.",
-    "practical_tip": "Интегрируйте объемную кожаную мотокуртку в повседневный гардероб, сочетая ее с лаконичными прямыми брюками, белой базовой футболкой и обувью на массивной подошве.",
-    "date": "21.10.2026"
   }
 ]
