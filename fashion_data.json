@@ -1,5 +1,28 @@
 [
   {
+    "brand": "Bottega Veneta",
+    "topic": "Капсула Bottega Veneta x Moomin Intrecciato",
+    "image_url": "https://image-cdn.hypb.st/https%3A%2F%2Fhypebeast.com%2Fimage%2F2026%2F11%2F05%2FMoomin-bottega-Veneta-Collaboration-collection-Release-Info-0.jpg?w=800&amp;cbr=1&amp;q=90&amp;fit=max",
+    "palette": [
+      {
+        "name": "Глубокий шоколадный Intrecciato",
+        "hex": "#362419"
+      },
+      {
+        "name": "Сливочно-фарфоровый Муми-тролль",
+        "hex": "#F4F1EA"
+      },
+      {
+        "name": "Сицилийский терракот",
+        "hex": "#B84A39"
+      }
+    ],
+    "cut_silhouette": "Скульптурный минимализм с акцентом на объёмные кожаные аксессуары и строгую геометрию плетения Intrecciato.",
+    "materials": "Премиальная плетеная кожа ягненка, матовая телячья кожа, латунная фурнитура с патиной.",
+    "practical_tip": "Добавьте в строгое монохромное пальто или костюм с мужского плеча элемент иронии — акцентную фактурную сумку или дизайнерский кожаный обвес, чтобы смягчить люксовую классику.",
+    "date": "06.11.2026"
+  },
+  {
     "brand": "Cecilie Bahnsen x Uniqlo",
     "topic": "Романтичный утилитаризм и цветочная фактура",
     "image_url": "https://image-cdn.hypb.st/https%3A%2F%2Fhypebeast.com%2Fimage%2F2026%2F11%2F04%2Fcecilie-bahnsen-uniqlo-fall-winter-2026-collaboration-capsule-collection-lookbook-release-info-dvxx-1.jpg?w=800&amp;cbr=1&amp;q=90&amp;fit=max",
@@ -205,28 +228,5 @@
     "materials": "Премиальная гладкая кожа, натуральный шелк высокой плотности, тонкая шерсть и благородные матовые фактуры.",
     "practical_tip": "Стройте образ на глубоком монохроме (шоколад или терракота) и добавляйте лишь один локальный яркий акцент в цвете Hermès Orange — например, кожаный аксессуар или шелковый платок.",
     "date": "27.10.2026"
-  },
-  {
-    "brand": "Maison Margiela",
-    "topic": "Архитектурный авангард и деконструкция",
-    "image_url": "https://image-cdn.hypb.st/https%3A%2F%2Fhypebeast.com%2Fimage%2F2026%2F10%2F22%2Fmaison-margiela-celebrates-20-years-ebisu-tokyo-store-new-folders-chapter-info-000.jpg?w=800&amp;cbr=1&amp;q=90&amp;fit=max",
-    "palette": [
-      {
-        "name": "Состаренный алебастр",
-        "hex": "#EAE5D9"
-      },
-      {
-        "name": "Пепельно-серый бетон",
-        "hex": "#7A7B7D"
-      },
-      {
-        "name": "Глубокий сажевый",
-        "hex": "#1A1A1A"
-      }
-    ],
-    "cut_silhouette": "Свободный авангардный силуэт с гипертрофированными плечами, прямой спадающей линией талии и удлиненными пропорциями.",
-    "materials": "Деконструированная костюмная шерсть, необработанный хлопковый холст и матовая кожа.",
-    "practical_tip": "Инвестируйте в оверсайз-пиджак с четким плечевым поясом и носите его с лаконичными прямыми брюками, сохраняя чистые монохромные линии в образе.",
-    "date": "24.10.2026"
   }
 ]
