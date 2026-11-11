@@ -1,5 +1,28 @@
 [
   {
+    "brand": "Stella McCartney x Yoshitomo Nara",
+    "topic": "Капсула Rock ’n’ Roll Forest",
+    "image_url": "https://image-cdn.hypb.st/https%3A%2F%2Fhypebeast.com%2Fimage%2F2026%2F11%2F09%2Fstella-mccartney-yoshitomo-nara-rock-n-roll-forest-collaboration-collection-release-info-000.jpg?w=800&amp;cbr=1&amp;q=90&amp;fit=max",
+    "palette": [
+      {
+        "name": "Глубокий хвойный зеленый",
+        "hex": "#2D3B32"
+      },
+      {
+        "name": "Панковский угольно-черный",
+        "hex": "#1C1C1E"
+      },
+      {
+        "name": "Сливочный необработанный хлопок",
+        "hex": "#E8E3D5"
+      }
+    ],
+    "cut_silhouette": "Свободный оверсайз-крой с заниженной линией плеч, объёмными пропорциями трикотажных изделий и непринужденной расслабленной посадкой в стиле гранж.",
+    "materials": "Органический трикотаж, ответственная эко-шерсть, переработанные дедсток-ткани и инновационный устойчивый текстиль.",
+    "practical_tip": "Сочетайте объёмный фактурный свитер с выразительной арт-графикой с лаконичными прямыми брюками нейтрального оттенка и минималистичными кедами.",
+    "date": "12.11.2026"
+  },
+  {
     "brand": "BEAMS",
     "topic": "Архивная аутдор-эстетика Expedition Club",
     "image_url": "https://image-cdn.hypb.st/https%3A%2F%2Fhypebeast.com%2Fimage%2F2026%2F11%2F10%2FBEAMS-Pitti-Uomo-111-expedition-club-Presentation-Announcement-Info-0.jpg?w=800&cbr=1&q=90&fit=max",
@@ -205,28 +228,5 @@
     "materials": "Плотная костюмная шерсть, фирменный матовый нейлон, гладкая кожа и шелковистый трикотаж.",
     "practical_tip": "Сочетайте строгий мужской пиджак свободного кроя с зауженными брюками со стрелками, разбавляя архитектурный силуэт мягким топом пастельного оттенка.",
     "date": "03.11.2026"
-  },
-  {
-    "brand": "Burberry x Palace",
-    "topic": "Капсула с обновленным пальто Camden",
-    "image_url": "https://image-cdn.hypb.st/https%3A%2F%2Fhypebeast.com%2Fimage%2F2026%2F10%2F31%2Fpalace-skateboard-burberry-limited-edition-capsule-london-flagship-opening-exclusive-collaboration-release-info-000.jpg?w=800&amp;cbr=1&amp;q=90&amp;fit=max",
-    "palette": [
-      {
-        "name": "Медовый беж (Honey Beige)",
-        "hex": "#D8B589"
-      },
-      {
-        "name": "Глубокий графит",
-        "hex": "#2A2D34"
-      },
-      {
-        "name": "Британский хаки",
-        "hex": "#4B5320"
-      }
-    ],
-    "cut_silhouette": "Свободный оверсайз-силуэт прямого кроя, спущенная линия плеча и акцентный классический воротник с уличными пропорциями.",
-    "materials": "Плотный водонепроницаемый хлопок-габардин, матовый нейлон и фактурный трикотаж.",
-    "practical_tip": "Сочетайте классический медово-бежевый тренч или пальто строгого кроя с объёмным худи и лаконичными кедами для создания стильного контраста между традиционной элегантностью и стритвиром.",
-    "date": "02.11.2026"
   }
 ]
