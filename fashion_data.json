@@ -1,5 +1,28 @@
 [
   {
+    "brand": "Maison Margiela x RIMOWA",
+    "topic": "Коллекция Bianchetto с эффектом патины",
+    "image_url": "https://image-cdn.hypb.st/https%3A%2F%2Fhypebeast.com%2Fimage%2F2026%2F11%2F12%2Frimowa-maison-margiela-limited-edition-bianchetto-travel-collection-000.jpg?w=800&amp;cbr=1&amp;q=90&amp;fit=max",
+    "palette": [
+      {
+        "name": "Меловой белый Bianchetto",
+        "hex": "#F4F4F0"
+      },
+      {
+        "name": "Индустриальный титан",
+        "hex": "#8A8A8E"
+      },
+      {
+        "name": "Темный графит",
+        "hex": "#2C2C2E"
+      }
+    ],
+    "cut_silhouette": "Архитектурные монолитные формы, жесткий прямоугольный объем с акцентом на концептуальную деконструкцию поверхностей.",
+    "materials": "Матовый полированный алюминий, зернистая кожа премиум-класса, многослойное кракелюрное покрытие ручной работы.",
+    "practical_tip": "Интегрируйте в минималистичный монохромный гардероб вещи с эффектом потертости или искусственного старения — например, винтажную кожаную куртку или матовый трикотаж с неравномерным окрашиванием.",
+    "date": "13.11.2026"
+  },
+  {
     "brand": "Stella McCartney x Yoshitomo Nara",
     "topic": "Капсула Rock ’n’ Roll Forest",
     "image_url": "https://image-cdn.hypb.st/https%3A%2F%2Fhypebeast.com%2Fimage%2F2026%2F11%2F09%2Fstella-mccartney-yoshitomo-nara-rock-n-roll-forest-collaboration-collection-release-info-000.jpg?w=800&amp;cbr=1&amp;q=90&amp;fit=max",
@@ -205,28 +228,5 @@
     "materials": "Фирменный высокотехнологичный Re-Nylon, плотное матовое шерстяное сукно и гладкая полированная кожа.",
     "practical_tip": "Миксуйте строгий оверсайз-жакет мужского кроя с лаконичной юбкой миди, разбавляя монохромную базу одним аксессуаром нежного масляно-желтого оттенка.",
     "date": "04.11.2026"
-  },
-  {
-    "brand": "Prada",
-    "topic": "Интеллектуальный минимализм и концептуальная классика",
-    "image_url": "https://fashionista.com/.image/NTg6MDAwMDAwMDAwODA1ODEy/zooey-deschanel-2.png?profile=rss",
-    "palette": [
-      {
-        "name": "Глубокий эспрессо",
-        "hex": "#2B1B17"
-      },
-      {
-        "name": "Сливочный овес",
-        "hex": "#E6DFD5"
-      },
-      {
-        "name": "Холодный стальной",
-        "hex": "#7A8B99"
-      }
-    ],
-    "cut_silhouette": "Четкая геометрия с графичным плечевым поясом, строгий прямолинейный силуэт и выверенный оверсайз.",
-    "materials": "Плотная костюмная шерсть, фирменный матовый нейлон, гладкая кожа и шелковистый трикотаж.",
-    "practical_tip": "Сочетайте строгий мужской пиджак свободного кроя с зауженными брюками со стрелками, разбавляя архитектурный силуэт мягким топом пастельного оттенка.",
-    "date": "03.11.2026"
   }
 ]
